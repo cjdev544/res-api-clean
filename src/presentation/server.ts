@@ -1,32 +1,35 @@
-import express from 'express'
+import express, { Router } from 'express'
 import path from 'node:path'
 
-import { AppRoutes } from './routes'
 import morgan from 'morgan'
 
 interface Options {
   port: number
   publicPath?: string
+  routes: Router
 }
 
 export class Server {
   private app = express()
   private readonly port: number
   private readonly publicPath: string
+  private readonly routes: Router
 
   constructor(options: Options) {
-    const { port, publicPath = 'public' } = options
+    const { routes, port, publicPath = 'public' } = options
     this.port = port
     this.publicPath = publicPath
+    this.routes = routes
     this.middlewares()
   }
 
   private middlewares() {
     this.app.use(morgan('dev'))
+    this.app.use(express.json())
   }
 
   public async start() {
-    this.app.get('/api/todos', AppRoutes.routes)
+    this.app.use(this.routes)
 
     this.app.use(express.static('public'))
 
